@@ -1,0 +1,22 @@
+[
+  {
+    "text": "[Example] What is the difference between a clustered and a non clustered index?",
+    "category": "dbms",
+    "type": "SHORT_ANSWER",
+    "difficulty": "INTERMEDIATE",
+    "roles": ["Backend engineer"],
+    "careerStages": ["FRESHER", "PROFESSIONAL"],
+    "skills": ["indexing"],
+    "tags": ["dbms", "indexing"],
+    "answerOutline": "A clustered index defines the physical order of rows. A non clustered index is a separate structure that points to the rows.",
+    "estimatedMinutes": 5
+  },
+  {
+    "text": "[Example] Why is a stack a good fit for checking balanced brackets?",
+    "category": "data-structures-algorithms",
+    "type": "SHORT_ANSWER",
+    "difficulty": "BEGINNER",
+    "answerOutline": "Push each opening bracket. On a closing bracket, pop and compare. The string is balanced if the stack ends empty.",
+    "estimatedMinutes": 4
+  }
+]

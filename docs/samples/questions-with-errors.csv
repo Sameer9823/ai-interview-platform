@@ -1,0 +1,5 @@
+text,category,type,difficulty,answerOutline,estimatedMinutes
+[Example] This row is valid and would be created as a draft.,sql,SHORT_ANSWER,BEGINNER,A valid answer outline.,4
+Short,sql,SHORT_ANSWER,BEGINNER,Too short a question text.,4
+[Example] This row uses a category that does not exist.,no-such-category,SHORT_ANSWER,BEGINNER,An outline.,4
+Explain the ACID properties of a database transaction.,dbms,SHORT_ANSWER,BEGINNER,Matches a seeded question so it is flagged as a duplicate.,4
