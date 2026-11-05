@@ -17,7 +17,7 @@ export interface SessionUser {
 
 const PUBLIC_EXACT = new Set(["/", "/privacy", "/terms"]);
 const AUTH_PAGES = new Set(["/sign-in", "/sign-up", "/forgot-password", "/reset-password"]);
-const SHARED_PRIVATE = ["/profile", "/goals", "/library", "/saved", "/assessments", "/mock-interviews", "/resume", "/settings"];
+const SHARED_PRIVATE = ["/profile", "/goals", "/library", "/saved", "/assessments", "/mock-interviews", "/resume", "/settings", "/plan", "/practice", "/community", "/study-groups", "/applications", "/opportunities"];
 /** Published content is public. Unpublished content is filtered out by the data layer, not by the route. */
 const PUBLIC_PREFIXES = ["/companies", "/questions", "/interview-experiences", "/topics"];
 

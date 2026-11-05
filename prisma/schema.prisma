@@ -183,6 +183,15 @@ communityPreferences CommunityPreference[]
   jobDescriptionAnalyses JobDescriptionAnalysis[]
   jobApplications        JobApplication[]
 
+  // Phase 12: Career Intelligence
+  careerIntelligenceSnapshots CareerIntelligenceSnapshot[]
+  skillEvidenceAggregates    SkillEvidenceAggregate[]
+  readinessAssessments       ReadinessAssessment[]
+  skillGapAnalyses           SkillGapAnalysis[]
+  careerRecommendations      CareerRecommendation[]
+  careerReports              CareerReport[]
+  careerIntelligenceSettings CareerIntelligenceSettings?
+
   @@index([careerStage])
   @@index([deletionRequestedAt])
 }
@@ -2238,17 +2247,26 @@ enum SkillEvidenceType {
   CODING_EVALUATION
   MOCK_INTERVIEW
   BEHAVIORAL_INTERVIEW
+  VOICE_INTERVIEW
   SELF_REPORTED
+  ROADMAP_TASK
+  JOB_DESCRIPTION_ANALYSIS
+  OPPORTUNITY_MATCH
+  COMPANY_QUESTION
+  EXTERNAL_CERTIFICATION
   MENTIONED_NOT_DEMONSTRATED
   NOT_FOUND
   NEEDS_ASSESSMENT
 }
 
 enum SkillEvidenceClassification {
+  CONSISTENTLY_DEMONSTRATED
   DEMONSTRATED
+  PARTIALLY_DEMONSTRATED
   SELF_REPORTED
   MENTIONED_NOT_DEMONSTRATED
   NOT_FOUND
+  INSUFFICIENT_EVIDENCE
   NEEDS_ASSESSMENT
 }
 
@@ -3372,5 +3390,359 @@ model ApplicationAttachment {
   uploadedAt      DateTime @default(now())
 
   @@index([applicationId])
+}
+
+// ============================================================================
+// PHASE 12: Career Intelligence, Placement Readiness & Personalized Progress Insights
+// ============================================================================
+
+enum SkillEvidenceSource {
+  RESUME_ANALYSIS
+  USER_CONFIRMED
+  PRACTICE_EVALUATION
+  ASSESSMENT_RESULT
+  CODING_EVALUATION
+  MOCK_INTERVIEW
+  BEHAVIORAL_INTERVIEW
+  VOICE_INTERVIEW
+  SELF_REPORTED
+  ROADMAP_TASK
+  JOB_DESCRIPTION_ANALYSIS
+  OPPORTUNITY_MATCH
+  COMPANY_QUESTION
+  EXTERNAL_CERTIFICATION
+}
+
+enum ReadinessLevel {
+  NOT_ASSESSED
+  GETTING_STARTED
+  DEVELOPING
+  DEMONSTRATED
+  CONSISTENTLY_DEMONSTRATED
+}
+
+enum ReadinessDimension {
+  TECHNICAL_SKILLS
+  PROBLEM_SOLVING
+  APTITUDE
+  COMMUNICATION
+  BEHAVIORAL_INTERVIEW
+  ROLE_SPECIFIC_KNOWLEDGE
+  RESUME_PRESENTATION
+  PRACTICAL_ASSESSMENT
+  INTERVIEW_PRACTICE_CONSISTENCY
+}
+
+enum RecommendationType {
+  LEARN_CONCEPT
+  PRACTICE_QUESTIONS
+  TAKE_ASSESSMENT
+  COMPLETE_CODING_EXERCISE
+  IMPROVE_RESUME
+  PERFORM_MOCK_INTERVIEW
+  COMPLETE_ROADMAP_TASK
+  REVIEW_MISTAKES
+  PREPARE_FOR_OPPORTUNITY
+  UPDATE_GOALS
+  PRACTICE_BEHAVIORAL
+  PRACTICE_VOICE
+  COMPLETE_MILESTONE
+  REVIEW_WEAK_TOPICS
+}
+
+enum RecommendationPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  OPTIONAL
+}
+
+enum CareerReportStatus {
+  DRAFT
+  GENERATING
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+enum RoleFrameworkStatus {
+  DRAFT
+  ACTIVE
+  DEPRECATED
+  ARCHIVED
+}
+
+model CareerIntelligenceSnapshot {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole      String?
+  careerStage     CareerStage?
+  overallScore    Float?
+  evidenceCoverage Float?
+  snapshotData    Json
+  methodologyVersion String @default("1.0")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, targetRole])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model SkillEvidenceAggregate {
+  id                      String   @id @default(cuid())
+  userId                  String
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId                 String
+  skillName               String
+  category                String
+  classification          SkillEvidenceClassification
+  proficiencyScore        Float?
+  confidence              Float?
+  totalEvidenceCount      Int      @default(0)
+  demonstratedCount       Int      @default(0)
+  selfReportedCount       Int      @default(0)
+  lastDemonstratedAt      DateTime?
+  lastAssessedAt          DateTime?
+  evidenceSources         Json     @default("[]")
+  sourceRecordIds         String[]
+  targetRoles             String[]
+  rubricVersion           String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([userId, skillId])
+  @@index([userId, category])
+  @@index([userId, classification])
+  @@index([userId, proficiencyScore(sort: Desc)])
+}
+
+model RoleFramework {
+  id              String   @id @default(cuid())
+  identifier      String   @unique
+  name            String
+  description     String
+  category        String
+  status          RoleFrameworkStatus @default(DRAFT)
+  currentVersion  Int      @default(1)
+  methodologyVersion String  @default("1.0")
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  versions        RoleFrameworkVersion[]
+  skills          RoleSkillRequirement[]
+  readinessAssessments ReadinessAssessment[]
+  skillGapAnalyses      SkillGapAnalysis[]
+}
+
+model RoleFrameworkVersion {
+  id              String       @id @default(cuid())
+  frameworkId     String
+  framework       RoleFramework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  version         Int
+  changeReason    String
+  snapshot        Json
+  createdBy       String?
+  createdAt       DateTime     @default(now())
+
+  @@unique([frameworkId, version])
+  @@index([frameworkId])
+}
+
+model RoleSkillRequirement {
+  id              String       @id @default(cuid())
+  frameworkId     String
+  framework       RoleFramework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  skillId         String
+  skillName       String
+  category        String
+  importance      Float        @default(1.0) // 0.0 - 1.0
+  isRequired      Boolean      @default(true)
+  expectedProficiency Float    @default(70.0) // 0-100
+  prerequisites   String[]     @default([])
+  evidenceTypes   String[]     @default([])
+  assessmentRecommendations String[] @default([])
+  practiceRecommendations String[] @default([])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([frameworkId, skillId])
+  @@index([frameworkId, importance(sort: Desc)])
+  @@index([frameworkId, category])
+}
+
+model SkillPrerequisite {
+  id              String   @id @default(cuid())
+  skillId         String
+  skillName       String
+  prerequisiteId  String
+  prerequisiteName String
+  relationshipType String  @default("REQUIRED") // REQUIRED | RECOMMENDED | HELPFUL
+  createdAt       DateTime @default(now())
+
+  @@unique([skillId, prerequisiteId])
+  @@index([skillId])
+  @@index([prerequisiteId])
+}
+
+model ReadinessAssessment {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole      String
+  careerStage     CareerStage?
+  frameworkId     String?
+  framework       RoleFramework? @relation(fields: [frameworkId], references: [id], onDelete: SetNull)
+  overallReadiness ReadinessLevel
+  overallScore    Float
+  dimensionResults Json
+  evidenceCoverage Json
+  limitations     String?
+  methodologyVersion String @default("1.0")
+  generatedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dimensionDetails ReadinessDimensionDetail[]
+
+  @@index([userId, targetRole])
+  @@index([userId, generatedAt(sort: Desc)])
+  @@unique([userId, targetRole, methodologyVersion])
+}
+
+model ReadinessDimensionDetail {
+  id              String   @id @default(cuid())
+  assessmentId    String
+  assessment      ReadinessAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  dimension       ReadinessDimension
+  level           ReadinessLevel
+  score           Float
+  evidenceCount   Int
+  demonstratedSkills String[]
+  missingSkills   String[]
+  selfReportedSkills String[]
+  needsAssessment String[]
+  explanation     String
+  createdAt       DateTime @default(now())
+
+  @@index([assessmentId])
+  @@unique([assessmentId, dimension])
+}
+
+model SkillGapAnalysis {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole      String
+  frameworkId     String?
+  framework       RoleFramework? @relation(fields: [frameworkId], references: [id], onDelete: SetNull)
+  gaps            Json
+  prioritizedGaps Json
+  methodologyVersion String @default("1.0")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, targetRole])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model CareerRecommendation {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            RecommendationType
+  priority        RecommendationPriority
+  title           String
+  description     String
+  explanation     String
+  evidence        Json     @default("[]")
+  targetSkillId   String?
+  targetSkillName String?
+  targetRole      String?
+  relatedFrameworkId String?
+  suggestedActions Json    @default("[]")
+  estimatedMinutes Int?
+  expectedOutcome String?
+  route           String?
+  actionLabel     String?
+  status          String   @default("PENDING") // PENDING | ACCEPTED | DISMISSED | SNOOZED | COMPLETED
+  dismissedAt     DateTime?
+  completedAt     DateTime?
+  expiresAt       DateTime?
+  methodologyVersion String @default("1.0")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, priority, createdAt(sort: Desc)])
+  @@index([userId, targetRole])
+  @@index([targetSkillId])
+}
+
+model CareerReport {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole      String
+  status          CareerReportStatus @default(DRAFT)
+  reportVersion   Int      @default(1)
+  methodologyVersion String @default("1.0")
+  reportData      Json
+  generatedAt     DateTime?
+  generatedBy     String?  // "SYSTEM" | userId
+  pdfStorageKey   String?
+  pdfGeneratedAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  versions        CareerReportVersion[]
+
+  @@index([userId, targetRole])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model CareerReportVersion {
+  id              String       @id @default(cuid())
+  reportId        String
+  report          CareerReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  version         Int
+  changeReason    String
+  snapshot        Json
+  createdBy       String?
+  createdAt       DateTime     @default(now())
+
+  @@unique([reportId, version])
+  @@index([reportId])
+}
+
+model ScoringMethodologyVersion {
+  id              String   @id @default(cuid())
+  version         String   @unique
+  name            String
+  description     String
+  rulesJson       Json
+  isActive        Boolean  @default(false)
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model CareerIntelligenceSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultTargetRole String?
+  preferredFrameworkId String?
+  notificationEnabled Boolean @default(true)
+  autoGenerateReports Boolean @default(false)
+  reportFrequency  String?  // WEEKLY | BIWEEKLY | MONTHLY
+  includeVoiceMetrics Boolean @default(false)
+  privacyLevel     String   @default("PRIVATE") // PRIVATE | ANONYMOUS_AGGREGATE
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 

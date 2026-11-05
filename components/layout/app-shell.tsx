@@ -29,9 +29,15 @@ export function AppShell({ stage, notifications, isAdmin, children }: Props) {
     { href: "/goals", label: "Preparation Goals", icon: "i-target" },
     { href: "/library", label: "Preparation Library", icon: "i-book" },
     { href: "/saved", label: "Saved Questions", icon: "i-check" },
-    { href: "/assessments", label: "Assessments", icon: "i-check", soon: true },
-    { href: "/mock-interviews", label: "AI Mock Interviews", icon: "i-mic", soon: true },
-    { href: "/resume", label: "Resume Analysis", icon: "i-file", soon: true },
+    { href: "/plan", label: "Preparation Plan", icon: "i-cal" },
+    { href: "/practice", label: "Practice", icon: "i-pen" },
+    { href: "/assessments", label: "Assessments", icon: "i-check" },
+    { href: "/mock-interviews", label: "AI Mock Interviews", icon: "i-mic" },
+    { href: "/resume", label: "Resume Analysis", icon: "i-file" },
+    { href: "/applications", label: "Applications", icon: "i-folder" },
+    { href: "/opportunities", label: "Opportunities", icon: "i-briefcase" },
+    { href: "/community", label: "Community", icon: "i-users" },
+    { href: "/study-groups", label: "Study Groups", icon: "i-group" },
     { href: "/settings/account", label: "Settings", icon: "i-cog" },
     ...(isAdmin ? [{ href: "/admin", label: "Administration", icon: "i-cog" }] : []),
   ];
@@ -40,7 +46,7 @@ export function AppShell({ stage, notifications, isAdmin, children }: Props) {
       ? path.startsWith("/settings")
       : href === "/library"
         ? path === "/library"
-        : path === href || (href === "/admin" && path.startsWith("/admin"));
+        : path === href || path.startsWith(href + "/") || (href === "/admin" && path.startsWith("/admin"));
 
   return (
     <div className={`shell${collapsed ? " c" : ""}${navOpen ? " nav-open" : ""}`}>
@@ -78,6 +84,33 @@ export function AppShell({ stage, notifications, isAdmin, children }: Props) {
           <circle {...S} cx="15" cy="8" r="2" />
           <circle {...S} cx="9" cy="16" r="2" />
         </symbol>
+        <symbol id="i-cal" viewBox="0 0 24 24">
+          <rect {...S} x="3" y="4" width="18" height="18" rx="2" />
+          <path {...S} d="M16 2v4M8 2v4M3 10h18" />
+        </symbol>
+        <symbol id="i-pen" viewBox="0 0 24 24">
+          <path {...S} d="M12 19l7-7 3 3-7 7-3-3z" />
+          <path {...S} d="M18 13l-1.5-7.5L2 2l3.5 3.5" />
+        </symbol>
+        <symbol id="i-folder" viewBox="0 0 24 24">
+          <path {...S} d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </symbol>
+        <symbol id="i-briefcase" viewBox="0 0 24 24">
+          <rect {...S} x="2" y="7" width="20" height="14" rx="2" />
+          <path {...S} d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" />
+        </symbol>
+        <symbol id="i-users" viewBox="0 0 24 24">
+          <path {...S} d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle {...S} cx="9" cy="7" r="4" />
+          <path {...S} d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path {...S} d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </symbol>
+        <symbol id="i-group" viewBox="0 0 24 24">
+          <path {...S} d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle {...S} cx="9" cy="7" r="4" />
+          <path {...S} d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path {...S} d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </symbol>
         <symbol id="bell" viewBox="0 0 256 256">
           <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216Z" />
         </symbol>
@@ -102,7 +135,6 @@ export function AppShell({ stage, notifications, isAdmin, children }: Props) {
               </svg>
               <span className="lbl">
                 {i.label}
-                {i.soon && <span className="soon">Soon</span>}
               </span>
             </Link>
           ))}

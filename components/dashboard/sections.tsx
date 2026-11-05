@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { Badge, Card, EmptyState, ProgressBar } from "@/components/ui/misc";
 import { LocalTime } from "@/components/layout/local-time";
-import type { DevUser } from "@/lib/data/dev-store";
+import type { CurrentUser } from "@/lib/auth/types";
 import { profileCompletion } from "@/lib/utils/profile-completion";
 import { CAREER_STAGE_LABELS, GOAL_LABELS } from "@/lib/utils/labels";
 
-export function Welcome({ user }: { user: DevUser }) {
+export function Welcome({ user }: { user: CurrentUser }) {
   return (
     <>
       <h1>Welcome, {user.name.split(" ")[0]}</h1>
@@ -16,7 +16,7 @@ export function Welcome({ user }: { user: DevUser }) {
   );
 }
 
-export function CompletionCard({ user }: { user: DevUser }) {
+export function CompletionCard({ user }: { user: CurrentUser }) {
   const { percent, missing } = profileCompletion(user);
   return (
     <Card>
@@ -32,7 +32,7 @@ export function CompletionCard({ user }: { user: DevUser }) {
   );
 }
 
-export function GoalsCard({ user }: { user: DevUser }) {
+export function GoalsCard({ user }: { user: CurrentUser }) {
   const { targetRole, careerDomain } = user.profile;
   return (
     <Card>
@@ -83,7 +83,7 @@ export function SummaryCard({ title, rows }: { title: string; rows: [string, str
 }
 
 /** Real counts only. Practice sessions stay at zero until the practice tools exist. */
-export function ActivitySummary({ user }: { user: DevUser }) {
+export function ActivitySummary({ user }: { user: CurrentUser }) {
   const count = (t: string) => user.activity.filter((a) => a.title === t).length;
   return (
     <Card>
@@ -109,7 +109,7 @@ export function ActivitySummary({ user }: { user: DevUser }) {
   );
 }
 
-export function NextSteps({ user, firstTool }: { user: DevUser; firstTool: string }) {
+export function NextSteps({ user, firstTool }: { user: CurrentUser; firstTool: string }) {
   const { missing } = profileCompletion(user);
   const steps = [...missing.slice(0, 3), `${firstTool} is planned first. It will show here when it is available.`];
   return (
@@ -154,7 +154,7 @@ export function ToolGrid({ tools }: { tools: [string, string][] }) {
   );
 }
 
-export function RecentActivity({ user }: { user: DevUser }) {
+export function RecentActivity({ user }: { user: CurrentUser }) {
   return (
     <Card style={{ marginTop: 16 }}>
       <h3>Recent activity</h3>

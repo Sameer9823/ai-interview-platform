@@ -1,4 +1,4 @@
-import type { DevUser } from "@/lib/data/dev-store";
+import type { CurrentUser } from "@/lib/auth/types";
 import { Card, EmptyState, Badge } from "@/components/ui/misc";
 import {
   ActivitySummary,
@@ -23,7 +23,7 @@ const TOOLS: [string, string][] = [
   ["Resume analysis", "Sharpen your resume for experienced roles."],
 ];
 
-export function ProfessionalDashboard({ user }: { user: DevUser }) {
+export function ProfessionalDashboard({ user }: { user: CurrentUser }) {
   const p = user.profile;
   const targetRole = p.targetRole;
   const hasGoals = user.goals.length > 0;

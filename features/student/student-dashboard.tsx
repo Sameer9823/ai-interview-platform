@@ -1,4 +1,4 @@
-import type { DevUser } from "@/lib/data/dev-store";
+import type { CurrentUser } from "@/lib/auth/types";
 import {
   ActivitySummary,
   CompletionCard,
@@ -22,7 +22,7 @@ const TOOLS: [string, string][] = [
   ["Communication practice", "Notes on clarity, pace and structure."],
 ];
 
-export function StudentDashboard({ user }: { user: DevUser }) {
+export function StudentDashboard({ user }: { user: CurrentUser }) {
   const p = user.profile;
   const hasActivity = user.activity.length > 0;
   const hasGoals = user.goals.length > 0;

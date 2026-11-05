@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { signSession, verifySession } from "./session-token";
 import { db } from "@/lib/db/client";
 import type { SessionUser } from "@/lib/permissions";
-import type { DevUser, Profile } from "@/lib/data/dev-store";
+import type { CurrentUser } from "@/lib/auth/types";
 
 const COOKIE = "ip_session";
 const MAX_AGE = 60 * 60 * 24 * 7;
@@ -31,7 +31,7 @@ export async function clearSession() {
 }
 
 /** Identity always comes from the signed cookie plus the database. Never from client supplied values. */
-export async function getCurrent(): Promise<{ record: DevUser | null; session: SessionUser | null }> {
+export async function getCurrent(): Promise<{ record: CurrentUser | null; session: SessionUser | null }> {
   const payload = verifySession((await cookies()).get(COOKIE)?.value, secret());
   if (!payload) return { record: null, session: null };
 
@@ -40,13 +40,16 @@ export async function getCurrent(): Promise<{ record: DevUser | null; session: S
     include: {
       profile: true,
       goals: true,
+      preference: true,
+      activityLogs: { orderBy: { createdAt: "desc" }, take: 10 },
+      notifications: { orderBy: { createdAt: "desc" }, take: 10, where: { readAt: null } },
     },
   });
 
   if (!user) return { record: null, session: null };
 
-  // Map Prisma user to DevUser type
-  const devUser: DevUser = {
+  // Map Prisma user to CurrentUser type
+  const currentUser: CurrentUser = {
     id: user.id,
     email: user.email,
     name: user.name,
@@ -70,16 +73,21 @@ export async function getCurrent(): Promise<{ record: DevUser | null; session: S
       skillsToImprove: user.profile.skillsToImprove,
     } : {
       preferredLanguage: "en",
+      skills: [],
       skillsToImprove: [],
     },
     goals: user.goals.map((g) => g.category),
-    prefs: { theme: "DARK", emailNotifications: true, productUpdates: false },
-    activity: [],
-    notifications: [],
+    prefs: user.preference ? {
+      theme: user.preference.theme,
+      emailNotifications: user.preference.emailNotifications,
+      productUpdates: user.preference.productUpdates,
+    } : { theme: "DARK", emailNotifications: true, productUpdates: false },
+    activity: user.activityLogs.map((a) => ({ id: a.id, title: a.type, at: a.createdAt.toISOString() })),
+    notifications: user.notifications.map((n) => ({ id: n.id, title: n.title, at: n.createdAt.toISOString(), read: !!n.readAt })),
   };
 
   return {
-    record: devUser,
+    record: currentUser,
     session: {
       id: user.id,
       careerStage: user.careerStage,
